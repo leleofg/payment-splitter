@@ -1,0 +1,43 @@
+org: leleofg
+app: payment-splitter
+service: payment-splitter
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+
+functions:
+  create-group:
+    handler: src/modules/group/functions/create-group.handler
+    events:
+      - httpApi:
+          path: /group
+          method: post
+plugins:
+  - serverless-offline
+  - serverless-esbuild
+
+esbuild:
+  bundle: true
+  minify: false
+  sourcemap: true
+  target: "node20"
+  exclude: 
+    - "@aws-sdk/*"
+  define: 
+    "require.resolve": undefined
+  platform: "node"
+  concurrency: 10
+
+resources:
+  Resources:
+    GroupTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: GROUP_TOPIC
+    CreateGroupQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: CREATE_GROUP_QUEUE

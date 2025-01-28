@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "lib": ["es2017"],
+    "removeComments": true,
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "sourceMap": true,
+    "target": "es2017",
+    "esModuleInterop": true,
+    "outDir": "lib",
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "paths": {
+      "@src/*": ["src/*"]
+    }
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules/**/*", ".serverless/**/*"]
+}
