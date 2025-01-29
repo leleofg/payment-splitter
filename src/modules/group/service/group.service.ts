@@ -1,16 +1,111 @@
 import { randomUUID } from "crypto";
-import { Publisher } from "../../../services/publisher/publisher";
+import { PaymentSplitterRepository } from "@src/repository/payment-splitter-repository";
+import { convertToAttr } from "@aws-sdk/util-dynamodb";
 
 export class GroupService {
   constructor(
-    private readonly publisher: Publisher
+    private paymentSplitterRepository = new PaymentSplitterRepository()
   ) {}
 
-  public async execute(name: string): Promise<string> {
-    const message = { id: randomUUID(), name };
+  public async createGroup(name: string): Promise<string> {
+    const groupId = randomUUID();
 
-    await this.publisher.publish(JSON.stringify(message));
+    await this.paymentSplitterRepository.save({
+      pk: `GROUP#${groupId}`,
+      sk: `GROUP`,
+      groupName: name
+    });
 
-    return message.id;
+    return groupId;
+  }
+
+  public async addMemberGroup(groupId: string, memberName: string): Promise<void> {
+    const expenseId = randomUUID();
+    
+    await this.paymentSplitterRepository.save({
+      pk: `GROUP#${groupId}`,
+      sk: `MEMBER#${expenseId}`,
+      memberName,
+      balance: 0
+    });
+  }
+
+  public async addExpenseGroup(groupId: string, expenseName: string, amount: number, payerId: string, splitWithIds?: string[]): Promise<void> {
+    // falta receber o splitWithIds
+    const expenseId = randomUUID();
+    
+    if (!splitWithIds?.length) {
+      const memberIds = await this.getMembersFromGroup(groupId);
+      const splitAmount = this.splitExpense(amount, memberIds.length);
+
+      console.log({memberIds});
+      console.log({splitAmount});
+    
+      const updatePromises = memberIds.map((memberId, i) => {
+        if (memberId === payerId) {
+          this.paymentSplitterRepository.update(
+            { pk: `GROUP#${groupId}`, sk: `MEMBER#${memberId}` },
+            {
+              UpdateExpression: "ADD balance :balance",
+              ExpressionAttributeValues: {
+                ":balance": { N: `-${amount.toString()}` }
+              }
+            }
+          )
+        } else {
+          this.paymentSplitterRepository.update(
+            { pk: `GROUP#${groupId}`, sk: `MEMBER#${memberId}` },
+            {
+              UpdateExpression: "ADD balance :balance",
+              ExpressionAttributeValues: {
+                ":balance": { N: `-${splitAmount[i].toString()}` }
+              }
+            }
+          )
+        }
+      });
+    
+      await Promise.all(updatePromises);
+    }   
+
+    console.log("chegou aqui");
+
+    await this.paymentSplitterRepository.save({
+      pk: `GROUP#${groupId}`,
+      sk: `EXPENSE#${expenseId}`,
+      expenseName,
+      amount,
+      payerId,
+      splitWithIds: splitWithIds ?? []
+    });
+  }
+
+  public async getMembersFromGroup(groupId: string): Promise<string[]> {
+    const expressionAttributeValues = {
+      ":pk": convertToAttr(`GROUP#${groupId}`),
+      ":sk": convertToAttr(`MEMBER#`)
+    };
+
+    const members = await this.paymentSplitterRepository.query({
+      keyConditionExpression: 'pk = :pk AND begins_with(sk, :sk)',
+      expressionAttributeValues
+    });
+
+    console.log({members});
+
+    return members.map(member => member.sk.split("#")[1]);
+  }
+
+  private splitExpense(totalAmount: number, numberOfPeople: number) {
+    const baseAmount = Math.floor(totalAmount / numberOfPeople);
+    const remainder = totalAmount - baseAmount * numberOfPeople;
+  
+    const splits = Array(numberOfPeople).fill(baseAmount);
+  
+    for (let i = 0; i < remainder; i++) {
+      splits[i] += 1;
+    }
+  
+    return splits;
   }
 }

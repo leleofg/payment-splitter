@@ -1,5 +1,5 @@
 import { GroupService } from "../service/group.service";
 
-export const makeCreateGroupFactory = () => {
+export const makeAddMemberGroupFactory = () => {
   return new GroupService(); //instanciar aqui
 };

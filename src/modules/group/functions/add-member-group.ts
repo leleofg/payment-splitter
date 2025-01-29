@@ -1,16 +1,16 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { ResponseGateway } from "../../../common/responseGateway";
-import { makeCreateGroupFactory } from "../factories/create-group-factory";
+import { makeAddMemberGroupFactory } from "../factories/add-member-group-factory";
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   try {
-    const { name } = JSON.parse(event.body!);
+    const { groupId, memberName } = JSON.parse(event.body!);
     // zod
 
-    const factory = makeCreateGroupFactory();
-    const groupId = await factory.createGroup(name);
+    const factory = makeAddMemberGroupFactory();
+    await factory.addMemberGroup(groupId, memberName);
 
-    return ResponseGateway.ok({ id: groupId }).build();
+    return ResponseGateway.ok().build();
   } catch (error) {
     return ResponseGateway.internalServerError(error).build();
   }
