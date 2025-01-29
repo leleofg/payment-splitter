@@ -80,8 +80,40 @@ export class GroupService {
     });
   }
 
-  public async getBalancesGroup(groupId: string): Promise<any[]> {
+  public async getBalancesGroup(groupId: string): Promise<PaymentSplitter[]> {
     return this.getMembersFromGroup(groupId);
+  }
+
+  public async settleDebts(groupId: string, payerId: string, payeeId: string, amount: number) {
+    const settlementId = randomUUID();
+
+    await Promise.all([
+      this.paymentSplitterRepository.update(
+        { pk: `GROUP#${groupId}`, sk: `MEMBER#${payerId}` },
+        {
+          UpdateExpression: "ADD balance :balance",
+          ExpressionAttributeValues: {
+            ":balance": { N: `-${amount.toString()}` }
+          }
+        }
+      ),
+      this.paymentSplitterRepository.update(
+        { pk: `GROUP#${groupId}`, sk: `MEMBER#${payeeId}` },
+        {
+          UpdateExpression: "ADD balance :balance",
+          ExpressionAttributeValues: {
+            ":balance": { N: `+${amount.toString()}` }
+          }
+        }
+      ),
+      this.paymentSplitterRepository.save({
+        pk: `GROUP#${groupId}`,
+        sk: `SETTLEMENT#${settlementId}`,
+        payerId,
+        settledWithId: payeeId,
+        settlementAmount: amount
+      })
+    ]);
   }
 
   private async getMembersFromGroup(groupId: string): Promise<PaymentSplitter[]> {

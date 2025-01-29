@@ -8,6 +8,8 @@ export class PaymentSplitter {
   payerId?: string;
   splitWithIds?: string[];
   balance?: number;
+  settlementAmount?: number;
+  settledWithId?: string;
 
   constructor(init?: Partial<PaymentSplitter>) {
     this.pk = init?.pk ?? "";

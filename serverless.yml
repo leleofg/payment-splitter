@@ -31,6 +31,12 @@ functions:
       - httpApi:
           path: /group/{groupId}/balances
           method: get
+  settle-debt-group:
+    handler: src/modules/group/functions/settle-debt-group.handler
+    events:
+      - httpApi:
+          path: /group/settle-debt
+          method: post
 plugins:
   - serverless-offline
   - serverless-esbuild
