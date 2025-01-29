@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { PaymentSplitterRepository } from "@src/repository/payment-splitter-repository";
 import { convertToAttr } from "@aws-sdk/util-dynamodb";
+import { PaymentSplitter } from "@src/repository/collection/payment-splitter";
 
 export class GroupService {
   constructor(
@@ -35,7 +36,8 @@ export class GroupService {
     const expenseId = randomUUID();
     
     if (!splitWithIds?.length) {
-      const memberIds = await this.getMembersFromGroup(groupId);
+      const members = await this.getMembersFromGroup(groupId);
+      const memberIds = members.map(member => member.sk.split("#")[1]);
       const splitAmount = this.splitExpense(amount, memberIds.length);
 
       console.log({memberIds});
@@ -66,9 +68,7 @@ export class GroupService {
       });
     
       await Promise.all(updatePromises);
-    }   
-
-    console.log("chegou aqui");
+    }
 
     await this.paymentSplitterRepository.save({
       pk: `GROUP#${groupId}`,
@@ -80,7 +80,11 @@ export class GroupService {
     });
   }
 
-  public async getMembersFromGroup(groupId: string): Promise<string[]> {
+  public async getBalancesGroup(groupId: string): Promise<any[]> {
+    return this.getMembersFromGroup(groupId);
+  }
+
+  private async getMembersFromGroup(groupId: string): Promise<PaymentSplitter[]> {
     const expressionAttributeValues = {
       ":pk": convertToAttr(`GROUP#${groupId}`),
       ":sk": convertToAttr(`MEMBER#`)
@@ -91,9 +95,7 @@ export class GroupService {
       expressionAttributeValues
     });
 
-    console.log({members});
-
-    return members.map(member => member.sk.split("#")[1]);
+    return members;
   }
 
   private splitExpense(totalAmount: number, numberOfPeople: number) {

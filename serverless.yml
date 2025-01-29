@@ -25,6 +25,12 @@ functions:
       - httpApi:
           path: /group/add-expense
           method: post
+  view-balances:
+    handler: src/modules/group/functions/view-balances-group.handler
+    events:
+      - httpApi:
+          path: /group/{groupId}/balances
+          method: get
 plugins:
   - serverless-offline
   - serverless-esbuild
