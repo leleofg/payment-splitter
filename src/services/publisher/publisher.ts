@@ -1,3 +1,3 @@
-export interface Publisher {
+export interface IPublisher {
   publish(message: string): Promise<void>;
 }

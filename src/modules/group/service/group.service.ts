@@ -1,6 +1,5 @@
 import { randomUUID } from "crypto";
 import { PaymentSplitterRepository } from "@src/repository/payment-splitter-repository";
-import { convertToAttr } from "@aws-sdk/util-dynamodb";
 import { PaymentSplitter } from "@src/repository/collection/payment-splitter";
 import { EmailService } from "@src/services/email/email-service";
 
@@ -136,10 +135,10 @@ export class GroupService {
     ]);
   }
 
-  private async getMembersFromGroup(groupId: string): Promise<PaymentSplitter[]> {
+  public async getMembersFromGroup(groupId: string): Promise<PaymentSplitter[]> {
     const expressionAttributeValues = {
-      ":pk": convertToAttr(`GROUP#${groupId}`),
-      ":sk": convertToAttr(`MEMBER#`)
+      ":pk": `GROUP#${groupId}`,
+      ":sk": 'MEMBER'
     };
 
     const members = await this.paymentSplitterRepository.query({
