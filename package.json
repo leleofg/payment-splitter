@@ -8,6 +8,7 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",
+    "@types/busboy": "^1.5.4",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.17.16",
     "@types/serverless": "^3.12.26",
@@ -22,8 +23,10 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.734.0",
+    "@aws-sdk/client-s3": "^3.738.0",
     "@aws-sdk/client-sns": "^3.734.0",
     "@aws-sdk/util-dynamodb": "^3.734.0",
+    "busboy": "^1.6.0",
     "resend": "^4.1.1",
     "zod": "^3.24.1"
   }

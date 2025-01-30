@@ -5,6 +5,12 @@ provider:
   name: aws
   runtime: nodejs20.x
   region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+      Resource: "*"
 
 functions:
   create-group:
@@ -37,6 +43,16 @@ functions:
       - httpApi:
           path: /group/settle-debt
           method: post
+  upload-expenses-group:
+    handler: src/modules/group/functions/upload-expenses-group.handler
+    timeout: 10 
+    events:
+      - httpApi:
+          path: /group/upload-expenses
+          method: post
+          cors: true
+          binaryMediaTypes:
+            - 'multipart/form-data'
 plugins:
   - serverless-offline
   - serverless-esbuild
@@ -75,4 +91,18 @@ resources:
               KeyType: "HASH"
             - AttributeName: "sk"
               KeyType: "RANGE"
+    ExpensesBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: expenses-payment-slipper-bucket
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - "*"
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+              AllowedHeaders:
+                - "*"
         

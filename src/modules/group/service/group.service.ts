@@ -2,11 +2,14 @@ import { randomUUID } from "crypto";
 import { PaymentSplitterRepository } from "@src/repository/payment-splitter-repository";
 import { PaymentSplitter } from "@src/repository/collection/payment-splitter";
 import { EmailService } from "@src/services/email/email-service";
+import { createInterface } from "readline";
+import { UploadFileService } from "@src/services/upload-file/upload-file-service";
 
 export class GroupService {
   constructor(
     private readonly paymentSplitterRepository = new PaymentSplitterRepository(),
-    private readonly emailService = new EmailService()
+    private readonly emailService = new EmailService(),
+    private readonly uploadFileService = new UploadFileService()
   ) {}
 
   public async createGroup(name: string): Promise<string> {
@@ -158,6 +161,46 @@ export class GroupService {
     });
 
     return members;
+  }
+
+  public async proccessExpenseFile(file: NodeJS.ReadableStream, filename: string) {
+    const chunks: Buffer[] = [];
+    const rl = createInterface({
+      input: file,
+      output: process.stdout,
+      terminal: false,
+    });
+
+    let isFirstLine = true;
+
+    rl.on("line", async (line: string) => {
+      if (isFirstLine) {
+        isFirstLine = false;
+        return;
+      }
+
+      const [groupId, payerId, expenseName, amount] = line.split(",");
+      await this.addExpenseGroup(groupId, expenseName, Number(amount), payerId);
+    });
+
+    file.on("data", (data) => {
+      chunks.push(data);
+    });
+
+    return new Promise<void>((resolve, reject) => {
+      file.on("end", async () => {
+        try {
+          const fileBuffer = Buffer.concat(chunks);
+          await this.uploadFileService.upload(process.env.BUCKET_NAME, filename, fileBuffer);
+          resolve();
+        } catch (err) {
+          console.error(`Error: ${err}`);
+          reject(err);
+        }
+      });
+
+      file.on("error", reject);
+    });
   }
 
   private splitExpense(totalAmount: number, numberOfPeople: number) {
