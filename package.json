@@ -13,6 +13,7 @@
     "@types/serverless": "^3.12.26",
     "esbuild": "^0.24.2",
     "jest": "^29.7.0",
+    "serverless-dotenv-plugin": "^6.0.0",
     "serverless-esbuild": "^1.54.6",
     "serverless-offline": "^13.9.0",
     "ts-jest": "^29.2.5",
@@ -23,6 +24,7 @@
     "@aws-sdk/client-dynamodb": "^3.734.0",
     "@aws-sdk/client-sns": "^3.734.0",
     "@aws-sdk/util-dynamodb": "^3.734.0",
+    "resend": "^4.1.1",
     "zod": "^3.24.1"
   }
 }

@@ -3,6 +3,7 @@ export class PaymentSplitter {
   sk: string;
   groupName?: string;
   memberName?: string;
+  memberEmail?: string;
   expenseName?: string;
   amount?: number;
   payerId?: string;

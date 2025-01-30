@@ -4,11 +4,11 @@ import { makeAddMemberGroupFactory } from "../factories/add-member-group-factory
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   try {
-    const { groupId, memberName } = JSON.parse(event.body!);
+    const { groupId, memberName, memberEmail } = JSON.parse(event.body!);
     // zod
 
     const factory = makeAddMemberGroupFactory();
-    await factory.addMemberGroup(groupId, memberName);
+    await factory.addMemberGroup(groupId, memberName, memberEmail);
 
     return ResponseGateway.ok().build();
   } catch (error) {
