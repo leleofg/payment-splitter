@@ -1,7 +1,7 @@
 import { SNSClient, PublishCommandInput, PublishCommand } from "@aws-sdk/client-sns";
-import { IPublisher } from "./publisher";
+import { Publisher } from "./publisher";
 
-export class Publisher implements IPublisher {
+export class PublisherImpl implements Publisher {
   private topicArn: string;
 
   constructor(

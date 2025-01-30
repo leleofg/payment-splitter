@@ -12,6 +12,6 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
 
     return ResponseGateway.ok().build();
   } catch (error) {
-    return ResponseGateway.internalServerError(error).build();
+    return ResponseGateway.internalServerError({ message: (error as Error).message }).build();
   }
 };

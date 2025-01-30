@@ -34,41 +34,44 @@ export class GroupService {
   }
 
   public async addExpenseGroup(groupId: string, expenseName: string, amount: number, payerId: string, splitWithIds?: string[]): Promise<void> {
-    // TODO: falta receber o splitWithIds
     const expenseId = randomUUID();
     const members = await this.getMembersFromGroup(groupId);
-    
-    if (!splitWithIds?.length) {
-      const memberIds = members.map(member => member.sk.split("#")[1]);
-      const splitAmount = this.splitExpense(amount, memberIds.length);
-    
-      const updatePromises = memberIds.map((memberId, i) => {
-        if (memberId === payerId) {
-          this.paymentSplitterRepository.update(
-            { pk: `GROUP#${groupId}`, sk: `MEMBER#${memberId}` },
-            {
-              UpdateExpression: "ADD balance :balance",
-              ExpressionAttributeValues: {
-                ":balance": { N: `-${amount.toString()}` }
-              }
-            }
-          )
-        } else {
-          this.paymentSplitterRepository.update(
-            { pk: `GROUP#${groupId}`, sk: `MEMBER#${memberId}` },
-            {
-              UpdateExpression: "ADD balance :balance",
-              ExpressionAttributeValues: {
-                ":balance": { N: `-${splitAmount[i].toString()}` }
-              }
-            }
-          )
-        }
+    if (!members.length) throw new Error("Group has no members");
+
+    const memberPayer = members.filter(member => member.sk.split("#")[1] === payerId);
+    if (!memberPayer.length) throw new Error("Payer not found in this group");
+
+    if (splitWithIds?.length) {
+      splitWithIds.forEach(memberId => {
+        const memberGroup = members.filter(member => member.sk.split("#")[1] === memberId);
+        if (!memberGroup.length) throw new Error("Member not found in this group");
       });
-    
-      await Promise.all(updatePromises);
     }
-    
+
+    const splitAmount = splitWithIds?.length 
+      ? this.splitExpense(amount, splitWithIds.length)
+      : this.splitExpense(amount, members.length);
+
+    const updateBalance = (memberId: string, balance: number) => {
+      return this.paymentSplitterRepository.update(
+        { pk: `GROUP#${groupId}`, sk: `MEMBER#${memberId}` },
+        {
+          UpdateExpression: "ADD balance :balance",
+          ExpressionAttributeValues: {
+            ":balance": { N: `${balance.toString()}` }
+          }
+        }
+      );
+    };
+
+    const updatePromises = members.map((member, i) => {
+      const memberId = member.sk.split("#")[1];
+      const balance = memberId === payerId ? -amount : -splitAmount[i];
+      return updateBalance(memberId, balance);
+    });
+
+    await Promise.all(updatePromises);
+
     const emailPromises = members.map(member => {
       if (member.memberEmail) {
         const obj = { groupId, expenseId, expenseName, amount, payerId, splitWithIds };
@@ -77,7 +80,7 @@ export class GroupService {
     });
 
     await Promise.all([
-      emailPromises,
+      ...emailPromises,
       this.paymentSplitterRepository.save({
         pk: `GROUP#${groupId}`,
         sk: `EXPENSE#${expenseId}`,
@@ -95,18 +98,24 @@ export class GroupService {
 
   public async settleDebts(groupId: string, payerId: string, payeeId: string, amount: number) {
     const settlementId = randomUUID();
-
     const members = await this.getMembersFromGroup(groupId);
+    if (!members.length) throw new Error("Group has no members");
 
-    const emailPromises = members.map(member => {
-      if (member.memberEmail) {
+    const memberPayer = members.filter(member => member.sk.split("#")[1] === payerId);
+    const memberPayee = members.filter(member => member.sk.split("#")[1] === payeeId);
+    
+    if (!memberPayer.length) throw new Error("Payer member not found");
+    if (!memberPayee.length) throw new Error("Payee member not found");
+    if (memberPayer[0].balance < amount) throw new Error("Payer don't have money");
+
+    const emailPromises = members
+      .filter(member => member.memberEmail)
+      .map(member => {
         const obj = { groupId, payerId, payeeId, amount };
         return this.emailService.send("New settle debt in group", JSON.stringify(obj), member.memberEmail);
-      }
-    });
+      });
 
-    await Promise.all([
-      emailPromises,
+    const updateBalancePromises = [
       this.paymentSplitterRepository.update(
         { pk: `GROUP#${groupId}`, sk: `MEMBER#${payerId}` },
         {
@@ -132,7 +141,9 @@ export class GroupService {
         settledWithId: payeeId,
         settlementAmount: amount
       })
-    ]);
+    ];
+
+    await Promise.all([...emailPromises, ...updateBalancePromises]);
   }
 
   public async getMembersFromGroup(groupId: string): Promise<PaymentSplitter[]> {

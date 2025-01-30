@@ -6,13 +6,12 @@ const groupService = new GroupService();
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   try {
-    const { groupId, expenseName, amount, payerId } = JSON.parse(event.body!);
+    const { groupId, expenseName, amount, payerId, splitWithIds } = JSON.parse(event.body!);
 
-    await groupService.addExpenseGroup(groupId, expenseName, amount, payerId);
+    await groupService.addExpenseGroup(groupId, expenseName, amount, payerId, splitWithIds);
 
     return ResponseGateway.ok().build();
   } catch (error) {
-    console.log(error);
-    return ResponseGateway.internalServerError(error).build();
+    return ResponseGateway.internalServerError({ message: (error as Error).message }).build();
   }
 };
