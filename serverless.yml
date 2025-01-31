@@ -93,7 +93,7 @@ resources:
     ExpensesBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: expenses-payment-slipper-bucket
+        BucketName: expenses-payment-splitter-bucket
         CorsConfiguration:
           CorsRules:
             - AllowedOrigins:
