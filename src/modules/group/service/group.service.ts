@@ -1,15 +1,15 @@
 import { randomUUID } from "crypto";
 import { PaymentSplitterRepository } from "@src/repository/payment-splitter-repository";
 import { PaymentSplitter } from "@src/repository/collection/payment-splitter";
-import { EmailService } from "@src/services/email/email-service";
 import { createInterface } from "readline";
 import { UploadFileService } from "@src/services/upload-file/upload-file-service";
+import { PublisherService } from "@src/services/publisher/publisher-service";
 
 export class GroupService {
   constructor(
     private readonly paymentSplitterRepository = new PaymentSplitterRepository(),
-    private readonly emailService = new EmailService(),
-    private readonly uploadFileService = new UploadFileService()
+    private readonly uploadFileService = new UploadFileService(),
+    private readonly publisherService = new PublisherService("GROUP_TOPIC")
   ) {}
 
   public async createGroup(name: string): Promise<string> {
@@ -73,17 +73,16 @@ export class GroupService {
       return updateBalance(memberId, balance);
     });
 
-    await Promise.all(updatePromises);
-
-    const emailPromises = members.map(member => {
-      if (member.memberEmail) {
-        const obj = { groupId, expenseId, expenseName, amount, payerId, splitWithIds };
-        return this.emailService.send("New expense in group", JSON.stringify(obj), member.memberEmail);
-      }
-    });
+    const membersEmails = members.map(member => member.memberEmail);
 
     await Promise.all([
-      ...emailPromises,
+      this.publisherService.publish(JSON.stringify({
+        eventType: "SEND_EMAIL",
+        subject: "New expense in group",
+        emails: membersEmails,
+        message: JSON.stringify({ groupId, expenseId, expenseName, amount, payerId, splitWithIds })
+      })),
+      updatePromises,
       this.paymentSplitterRepository.save({
         pk: `GROUP#${groupId}`,
         sk: `EXPENSE#${expenseId}`,
@@ -110,13 +109,6 @@ export class GroupService {
     if (!memberPayer.length) throw new Error("Payer member not found");
     if (!memberPayee.length) throw new Error("Payee member not found");
     if (memberPayer[0].balance < amount) throw new Error("Payer don't have money");
-
-    const emailPromises = members
-      .filter(member => member.memberEmail)
-      .map(member => {
-        const obj = { groupId, payerId, payeeId, amount };
-        return this.emailService.send("New settle debt in group", JSON.stringify(obj), member.memberEmail);
-      });
 
     const updateBalancePromises = [
       this.paymentSplitterRepository.update(
@@ -146,7 +138,16 @@ export class GroupService {
       })
     ];
 
-    await Promise.all([...emailPromises, ...updateBalancePromises]);
+    const membersEmails = members.map(member => member.memberEmail);
+
+    await Promise.all([
+      this.publisherService.publish(JSON.stringify({
+        eventType: "SEND_EMAIL",
+        subject: "New settle debt in group",
+        emails: membersEmails,
+        message: JSON.stringify({ groupId, payerId, payeeId, amount })
+      })),
+      ...updateBalancePromises]);
   }
 
   public async getMembersFromGroup(groupId: string): Promise<PaymentSplitter[]> {

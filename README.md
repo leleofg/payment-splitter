@@ -17,9 +17,10 @@ I chose to use the single table pattern with DynamoDB. Because I already have ex
 
 # Prerequisites
 
-- Set BUCKET_NAME in .env file to send files to S3.
-- Set RESEND_API_KEY in .env file to send e-mails.
-- Set AWS credentials.
+- Set BUCKET_NAME at .env file to send files to S3.
+- Set RESEND_API_KEY at .env file to send e-mails.
+- Set AWS_ACCOUNT_ID at .env file to use publisher service.
+- Set AWS credentials at Github secrets.
 - CSV format:
 ```
 groupId,payerId,expenseName,amount
@@ -33,4 +34,4 @@ Deploy with Github Actions, just deploy to branch main. You need set AWS_ACCESS_
 
 ## Known limitations
 
-- Event-based architecture
+- DLQ to queue SEND_EMAIL_QUEUE

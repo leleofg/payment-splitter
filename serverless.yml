@@ -11,6 +11,11 @@ provider:
         - s3:PutObject
         - s3:GetObject
       Resource: "*"
+    - Effect: Allow
+      Action:
+        - sqs:ReceiveMessage
+        - sqs:GetQueueAttributes
+      Resource: !GetAtt SendEmailQueue.Arn
 
 functions:
   create-group:
@@ -52,6 +57,12 @@ functions:
           cors: true
           binaryMediaTypes:
             - 'multipart/form-data'
+  send-email-consumer:
+    handler: handler.sendEmail
+    events:
+      - sqs:
+          arn: !GetAtt SendEmailQueue.Arn
+          batchSize: 10
 plugins:
   - serverless-offline
   - serverless-esbuild
@@ -75,6 +86,10 @@ resources:
       Type: AWS::SNS::Topic
       Properties:
         TopicName: GROUP_TOPIC
+    SendEmailQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: SEND_EMAIL_QUEUE
     PaymentSplitter:
         Type: "AWS::DynamoDB::Table"
         Properties:
@@ -104,4 +119,28 @@ resources:
                 - POST
               AllowedHeaders:
                 - "*"
+    SendEmailQueueSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Protocol: sqs
+        TopicArn: !Ref GroupTopic
+        Endpoint: !GetAtt SendEmailQueue.Arn
+        FilterPolicy: 
+          eventType: 
+            - "SEND_EMAIL"
+    SendEmailQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - !Ref SendEmailQueue
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal: "*"
+              Action: "SQS:SendMessage"
+              Resource: !GetAtt SendEmailQueue.Arn
+              Condition:
+                ArnEquals:
+                  "aws:SourceArn": !Ref GroupTopic
         
