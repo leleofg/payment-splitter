@@ -5,7 +5,7 @@
 - This project uses AWS Lambda, API Gateway V2, S3 and DynamoDB.
 - Everything managed through the serverless framework v3.
 - Resources(Table, SNS Topic, SQS Queue and S3) were created using Cloudformation.
-- Resend to send e-mails.
+- Resend to send e-mails. We use the EMAIL_QUEUE to send e-mails.
 - S3 to storage files.
 - Cloudwatch to observalibity.
 - Zod to schema validation.
