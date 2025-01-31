@@ -67,10 +67,12 @@ export class GroupService {
       );
     };
 
-    const updatePromises = members.map((member, i) => {
-      const memberId = member.sk.split("#")[1];
-      const balance = memberId === payerId ? -amount : -splitAmount[i];
-      return updateBalance(memberId, balance);
+    const updatePromises = members
+      .filter((member) => !splitWithIds || !splitWithIds.includes(member.sk.split("#")[1]))
+      .map((member, i) => {
+        const memberId = member.sk.split("#")[1];
+        const balance = memberId === payerId ? -amount : -splitAmount[i];
+        return updateBalance(memberId, balance);
     });
 
     const membersEmails = members.map(member => member.memberEmail);

@@ -1,21 +1,25 @@
 import { GroupService } from './group.service';
 import { PaymentSplitterRepository } from '@src/repository/payment-splitter-repository';
-import { EmailService } from '@src/services/email/email-service';
+import { PublisherService } from '@src/services/publisher/publisher-service';
+import { UploadFileService } from '@src/services/upload-file/upload-file-service';
 import { randomUUID } from "crypto";
 
 jest.mock('@src/repository/payment-splitter-repository');
-jest.mock('@src/services/email/email-service');
+jest.mock('@src/services/publisher/publisher-service');
+jest.mock('@src/services/upload-file/upload-file-service');
 jest.mock('crypto');
 
 describe('GroupService', () => {
   let groupService: GroupService;
   let paymentSplitterRepository: jest.Mocked<PaymentSplitterRepository>;
-  let emailService: jest.Mocked<EmailService>;
+  let uploadFileService: jest.Mocked<UploadFileService>;
+  let publisherService: jest.Mocked<PublisherService>;
 
   beforeEach(() => {
     paymentSplitterRepository = new PaymentSplitterRepository() as jest.Mocked<PaymentSplitterRepository>;
-    emailService = new EmailService() as jest.Mocked<EmailService>;
-    groupService = new GroupService(paymentSplitterRepository, emailService);
+    uploadFileService = new UploadFileService() as jest.Mocked<UploadFileService>;
+    publisherService = new PublisherService("GROUP_TOPIC") as jest.Mocked<PublisherService>;
+    groupService = new GroupService(paymentSplitterRepository, uploadFileService, publisherService);
   });
 
   it('should create a new group and return the groupId', async () => {
@@ -77,7 +81,7 @@ describe('GroupService', () => {
     expect(result).toEqual(members);
   });
 
-  it('should settle debts and send emails', async () => {
+  it('should settle debts', async () => {
     const groupId = 'group-123';
     const payerId = 'payer-123';
     const payeeId = 'payee-123';
@@ -87,13 +91,10 @@ describe('GroupService', () => {
     (randomUUID as jest.Mock).mockReturnValue(settlementId);
 
     const members = [
-      { pk: 'GROUP', sk: 'MEMBER', memberEmail: 'member1@example.com' },
-      { pk: 'GROUP', sk: 'MEMBER', memberEmail: 'member2@example.com' },
+      { pk: 'GROUP', sk: 'MEMBER#payer-123', memberEmail: 'member1@example.com' },
+      { pk: 'GROUP', sk: 'MEMBER#payee-123', memberEmail: 'member2@example.com' },
     ];
     jest.spyOn(groupService, 'getMembersFromGroup').mockResolvedValue(members);
-
-    const emailMock = jest.fn().mockResolvedValue(true);
-    emailService.send = emailMock;
 
     const updateMock = jest.fn().mockResolvedValue(true);
     const saveMock = jest.fn().mockResolvedValue(true);
@@ -103,7 +104,6 @@ describe('GroupService', () => {
     await groupService.settleDebts(groupId, payerId, payeeId, amount);
 
     expect(groupService.getMembersFromGroup).toHaveBeenCalledWith(groupId);
-    expect(emailMock).toHaveBeenCalledTimes(2);
     expect(updateMock).toHaveBeenCalledTimes(2);
     expect(updateMock).toHaveBeenCalledWith(
       { pk: `GROUP#${groupId}`, sk: `MEMBER#${payerId}` },

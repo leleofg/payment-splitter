@@ -20,7 +20,7 @@ I chose to use the single table pattern with DynamoDB. Because I already have ex
 - Set BUCKET_NAME at .env file to send files to S3.
 - Set RESEND_API_KEY at .env file to send e-mails.
 - Set AWS_ACCOUNT_ID at .env file to use publisher service.
-- Set AWS credentials at Github secrets.
+- Set AWS credentials and all envs at Github secrets.
 - CSV format:
 ```
 groupId,payerId,expenseName,amount
@@ -30,8 +30,26 @@ groupId,payerId,expenseName,amount
 
 ## Deployment
 
-Deploy with Github Actions, just deploy to branch main. You need set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in github secrets.
+Deploy with Github Actions, just deploy to branch main.
+
+## Running
+
+```
+npm run start
+```
+
+## Testing
+
+```
+npm test
+```
 
 ## Known limitations
 
-- DLQ to queue SEND_EMAIL_QUEUE
+- Create a DLQ to queue SEND_EMAIL_QUEUE
+
+I could have included more asynchronous flows, such as:
+
+Add expenses to the group asynchronously, to guarantee 100% delivery. And as soon as this expense was created, it would emit an event for the GROUP_TOPIC topic, with the eventType attribute, EXPENSE_ADDED, therefore, in the EMAIL_QUEUE queue, upon receiving this eventType, the email would be sent.
+
+This would be just an example of what could be done asynchronously.

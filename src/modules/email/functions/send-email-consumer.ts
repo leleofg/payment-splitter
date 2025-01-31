@@ -16,7 +16,7 @@ export const run: SQSHandler = async (event) => {
   for (const record of event.Records) {
     try {
       const body = JSON.parse(record.body);
-      const { subject, eventType, emails, message } = JSON.parse(body.Message);
+      const { subject, eventType, emails, message }: EmailMessage = JSON.parse(body.Message);
 
       console.log({ subject, eventType, emails, message });
 
