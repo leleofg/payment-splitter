@@ -125,9 +125,6 @@ resources:
         Protocol: sqs
         TopicArn: !Ref GroupTopic
         Endpoint: !GetAtt SendEmailQueue.Arn
-        FilterPolicy: 
-          eventType: 
-            - "SEND_EMAIL"
     SendEmailQueuePolicy:
       Type: AWS::SQS::QueuePolicy
       Properties:
