@@ -44,6 +44,10 @@ npm run start
 npm test
 ```
 
+## Postman Collection
+
+Postman Collection is at the root of the project, in the file: payment-splitter-collection.json
+
 ## Known limitations
 
 - Create a DLQ to queue SEND_EMAIL_QUEUE

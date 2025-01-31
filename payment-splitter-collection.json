@@ -1,0 +1,199 @@
+{
+	"info": {
+		"_postman_id": "6c1d3aad-87ac-4f3c-a9ac-b1bfb2b1c619",
+		"name": "Payment Splitter",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1456911"
+	},
+	"item": [
+		{
+			"name": "Group",
+			"item": [
+				{
+					"name": "Create Group",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"first\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:3000/group",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "3000",
+							"path": [
+								"group"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Member Group",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"memberName\": \"John\",\n    \"memberEmail\": \"john@gmail.com\",\n    \"groupId\": \"2cf10f77-e30a-47c7-9207-572666d0c164\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:3000/group/add-member",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "3000",
+							"path": [
+								"group",
+								"add-member"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Expense Group",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"groupId\": \"2cf10f77-e30a-47c7-9207-572666d0c164\",\n    \"expenseName\": \"oranges\",\n    \"amount\": 20,\n    \"payerId\": \"82564656-f017-447d-a52e-520b8d0013cc\",\n    \"splitWithIds\": [\"1680152b-95a3-4535-923b-440967151721\", \"82564656-f017-447d-a52e-520b8d0013cc\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:3000/group/add-expense",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "3000",
+							"path": [
+								"group",
+								"add-expense"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balances Group",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://0.0.0.0:3000/group/2cf10f77-e30a-47c7-9207-572666d0c164/balances",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "3000",
+							"path": [
+								"group",
+								"2cf10f77-e30a-47c7-9207-572666d0c164",
+								"balances"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Settle Debt Group",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"groupId\": \"2cf10f77-e30a-47c7-9207-572666d0c164\",\n    \"amount\": 2,\n    \"payerId\": \"1680152b-95a3-4535-923b-440967151721\",\n    \"payeeId\": \"82564656-f017-447d-a52e-520b8d0013cc\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:3000/group/settle-debt",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "3000",
+							"path": [
+								"group",
+								"settle-debt"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Expenses Group",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "",
+									"type": "file",
+									"src": "/Users/leonardofarias/Downloads/Upload Expenses Group - Página1.csv"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://0.0.0.0:3000/group/upload-expenses",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "3000",
+							"path": [
+								"group",
+								"upload-expenses"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
