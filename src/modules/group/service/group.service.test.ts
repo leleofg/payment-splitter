@@ -81,6 +81,97 @@ describe('GroupService', () => {
     expect(result).toEqual(members);
   });
 
+  it('should not settle debts when payerId is not found in members', async () => {
+    const groupId = 'group-123';
+    const payerId = 'payer-123';
+    const payeeId = 'payee-123';
+    const amount = 100;
+
+    const settlementId = 'settlement-123';
+    (randomUUID as jest.Mock).mockReturnValue(settlementId);
+
+    const members = [
+      { pk: 'GROUP', sk: 'MEMBER#payer-not-found' },
+      { pk: 'GROUP', sk: 'MEMBER#payee-123' },
+    ];
+    jest.spyOn(groupService, 'getMembersFromGroup').mockResolvedValue(members);
+    
+    await expect(groupService.settleDebts(groupId, payerId, payeeId, amount))
+    .rejects
+    .toThrow("Payer member not found");
+  });
+
+  it('should not settle when group has no members', async () => {
+    const groupId = 'group-123';
+    const payerId = 'payer-123';
+    const payeeId = 'payee-123';
+    const amount = 100;
+
+    const settlementId = 'settlement-123';
+    (randomUUID as jest.Mock).mockReturnValue(settlementId);
+
+    const members = [];
+    jest.spyOn(groupService, 'getMembersFromGroup').mockResolvedValue(members);
+    
+    await expect(groupService.settleDebts(groupId, payerId, payeeId, amount))
+    .rejects
+    .toThrow("Group has no members");
+  });
+
+  it('should not settle when payer does not have money', async () => {
+    const groupId = 'group-123';
+    const payerId = 'payer-123';
+    const payeeId = 'payee-123';
+    const amount = 100;
+
+    const settlementId = 'settlement-123';
+    (randomUUID as jest.Mock).mockReturnValue(settlementId);
+
+    const members = [
+      { pk: 'GROUP', sk: 'MEMBER#payer-123', balance: 50 },
+      { pk: 'GROUP', sk: 'MEMBER#payee-123', balance: 50 }
+    ];
+    jest.spyOn(groupService, 'getMembersFromGroup').mockResolvedValue(members);
+    
+    await expect(groupService.settleDebts(groupId, payerId, payeeId, amount))
+    .rejects
+    .toThrow("Payer don't have money");
+  });
+
+  it('should not add expense when group has no members', async () => {
+    const groupId = 'group-123';
+    const payerId = 'payer-123';
+    const amount = 100;
+
+    const settlementId = 'settlement-123';
+    (randomUUID as jest.Mock).mockReturnValue(settlementId);
+
+    const members = [];
+    jest.spyOn(groupService, 'getMembersFromGroup').mockResolvedValue(members);
+    
+    await expect(groupService.addExpenseGroup(groupId, "x", amount, payerId))
+    .rejects
+    .toThrow("Group has no members");
+  });
+
+  it('should not add expense when payer is not found in group', async () => {
+    const groupId = 'group-123';
+    const payerId = 'payer-123';
+    const amount = 100;
+
+    const settlementId = 'settlement-123';
+    (randomUUID as jest.Mock).mockReturnValue(settlementId);
+
+    const members = [
+      { pk: 'GROUP', sk: 'MEMBER#payer-1234', balance: 50 }
+    ];
+    jest.spyOn(groupService, 'getMembersFromGroup').mockResolvedValue(members);
+    
+    await expect(groupService.addExpenseGroup(groupId, "x", amount, payerId))
+    .rejects
+    .toThrow("Payer not found in this group");
+  });
+
   it('should settle debts', async () => {
     const groupId = 'group-123';
     const payerId = 'payer-123';
