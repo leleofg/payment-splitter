@@ -45,7 +45,6 @@ functions:
           method: post
   upload-expenses-group:
     handler: src/modules/group/functions/upload-expenses-group.handler
-    timeout: 10 
     events:
       - httpApi:
           path: /group/upload-expenses
