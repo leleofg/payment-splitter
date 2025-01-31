@@ -28,3 +28,8 @@ jobs:
       - name: Deploy Serverless App - Production
         if: github.ref == 'refs/heads/main'
         run: npm run sls deploy --stage=production
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          AWS_ACCOUNT_REGION: ${{ secrets.AWS_ACCOUNT_REGION }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
