@@ -6,10 +6,10 @@ provider:
   runtime: nodejs20.x
   region: us-east-1
   environment:
-    RESEND_API_KEY: ${env:RESEND_API_KEY}
-    AWS_ACCOUNT_REGION: ${env:AWS_ACCOUNT_REGION}
-    AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
-    BUCKET_NAME: ${env:BUCKET_NAME}
+    RESEND_API_KEY: ${env:RESEND_API_KEY, ''}
+    AWS_ACCOUNT_REGION: ${env:AWS_ACCOUNT_REGION, ''}
+    AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID, ''}
+    BUCKET_NAME: ${env:BUCKET_NAME, ''}
   iamRoleStatements:
     - Effect: Allow
       Action:
