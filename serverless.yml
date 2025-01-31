@@ -58,7 +58,7 @@ functions:
           binaryMediaTypes:
             - 'multipart/form-data'
   send-email-consumer:
-    handler: handler.sendEmail
+    handler: src/modules/email/functions/send-email-consumer.run
     events:
       - sqs:
           arn: !GetAtt SendEmailQueue.Arn
