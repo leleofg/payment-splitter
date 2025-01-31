@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "start": "serverless offline start --stage dev --host 0.0.0.0",
-    "test": "jest --coverage=false --runInBand"
+    "test": "jest --coverage=false --runInBand",
+    "sls": "serverless"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",
