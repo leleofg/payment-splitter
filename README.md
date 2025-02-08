@@ -44,16 +44,6 @@ npm run start
 npm test
 ```
 
-## Postman Collection
-
-Postman Collection is at the root of the project, in the file: payment-splitter-collection.json
-
 ## Known limitations
 
 - Create a DLQ to queue SEND_EMAIL_QUEUE
-
-I could have included more asynchronous flows, such as:
-
-Add expenses to the group asynchronously, to guarantee 100% delivery. And as soon as this expense was created, it would emit an event for the GROUP_TOPIC topic, with the eventType attribute, EXPENSE_ADDED, therefore, in the EMAIL_QUEUE queue, upon receiving this eventType, the email would be sent.
-
-This would be just an example of what could be done asynchronously.
